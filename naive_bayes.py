@@ -58,12 +58,55 @@ def word_class_prob(wd, cl, _set):
 
     return word_instances / word_list_length
 
-    # P(A|B) -> Naive Bayes for a single word. Probabilty of a class
-    # given a word, in a ste of labeled emails
-def n_b(cl, wd, _set):
+# P(A|B) -> Naive Bayes for a single word. Probabilty of a class
+# given a word, in a set of labeled emails
+def n_b_single_word(cl, wd, _set):
     word = wd.strip().upper()
     p_ba = word_class_prob(word, cl, _set)
     p_a = class_prob(cl, _set)
     p_b = word_prob(word, _set)
 
     return p_ba * p_a / p_b
+
+
+# Complete Naive Bayes
+def n_b(cl, wd, _set):
+    
+    word_list = list(wd.split())
+    word_list_length = len(word_list)
+
+    # only one word probability
+    if word_list_length == 1:
+        return n_b_single_word(cl, wd, _set)
+    
+    # for multiple words
+    # P(A1) * P(B1|A1) * ... * P(Bn|A1) -> top: probability of the class times
+    # the probability of all the words given that same class
+    # / P(A1) * P(B1|A1) * ... * P(Bn|A1) + P(A2) * P(B1|A2) * ... * P(Bn|A2)
+    # -> bottom: probability of a class times the probability off all words given that
+    # same class, for all clases
+
+    top = class_prob(cl, _set)
+
+    for w in word_list:
+        word = w.strip().upper()
+        top *= word_class_prob(word, cl, _set)
+    
+    bottom = top
+
+    # there are only two classes: 1 & 0
+    other_class = 0
+    if cl == 0:
+        other_class = 1
+
+    step = class_prob(other_class, _set)
+
+    for w in word_list:
+        word = w.strip().upper()
+        step *= word_class_prob(word, other_class, _set)
+    
+    bottom += step
+
+    result = top / bottom
+
+    return result
