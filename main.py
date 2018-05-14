@@ -19,3 +19,18 @@ if __name__ == "__main__":
     print("Probability of class 1 given 'free money':", prob_5)
     print("Probability of class 0 given 'free money':", prob_6)
     print("total:", prob_5 + prob_6)
+
+    print("Try a word that doesn't appear, with and without Laplacian Smoothing")
+    prob_7 = n_b(1, 'ubuntu', mails)
+    prob_8 = n_b(0, 'ubuntu', mails)
+    prob_9= n_b(1, 'ubuntu', mails, smoothing=True)
+    prob_10 = n_b(0, 'ubuntu', mails, smoothing=True)
+
+    print("No smoothing:")
+    print("Probability of class 1 given 'ubuntu':", prob_7)
+    print("Probability of class 0 given 'ubuntu':", prob_8)
+    print("With Smoothing:")
+    print("Probability of class 1 given 'ubuntu':", prob_9)
+    print("Probability of class 1 given 'ubuntu':", prob_10)
+
+    

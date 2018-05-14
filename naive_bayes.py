@@ -1,14 +1,7 @@
 # Naive Bayes 
-"""
-    P(A|B) = P(B|A) * P(A) / P(B)
-    A = Class (SPAM or HAM)
-    B = Word (1)
-
-    -> mutiple words handled differently
-"""
 
 # P(A) -> probability of a class in a set of labeled emails
-def class_prob(cl, _set):
+def class_prob(cl, _set, smoothing):
     class_instances = 0
     
     # count how many times the class appears
@@ -20,23 +13,33 @@ def class_prob(cl, _set):
     # number of total instances
     total = len(_set)
 
-    return class_instances / total
+    # smoothing: K = 1
+    # cardinality: the number of different classes (2)
+    # times K
+    k = 0
+    card = 0
+
+    if smoothing:
+        k = 1
+        card = 2
+
+    return (class_instances + k) / (total + card)
 
 # P(B) -> probability of a word in a set of labeled emails
-def word_prob(wd, _set):
+def word_prob(wd, _set, smoothing):
     # the probability of a word is the sum of 
     # the probability of a word given a class times the probability of a class
     # for all clases (1, 0)
 
     # P(B) -> P(B|1) * P(1) + P(B|0) * P(0) 
-    p_b = word_class_prob(wd, 1, _set) * class_prob(1, _set)
-    p_b += word_class_prob(wd, 0, _set) * class_prob(0, _set)
+    p_b = word_class_prob(wd, 1, _set, smoothing) * class_prob(1, _set, smoothing)
+    p_b += word_class_prob(wd, 0, _set, smoothing) * class_prob(0, _set, smoothing)
 
     return p_b
 
 # P(B|A) -> probability of a word given a class, inside a set
 # of labeled emails
-def word_class_prob(wd, cl, _set):
+def word_class_prob(wd, cl, _set, smoothing):
     word_instances = 0
 
     # gather all the words for the given class
@@ -56,28 +59,51 @@ def word_class_prob(wd, cl, _set):
         if word == wd:
             word_instances += 1
 
-    return word_instances / word_list_length
+    # smoothing: K = 1
+    # cardinality: the number of different words
+    # times K
+    k = 0
+    card = 0
+
+    if smoothing:
+        total_text = ""
+        for w, _ in _set:
+            total_text += w + " "
+
+        total_word_list = list(total_text.split())
+
+        k = 1
+        card = len(set(total_word_list))
+
+    return (word_instances + k) / (word_list_length + card)
 
 # P(A|B) -> Naive Bayes for a single word. Probabilty of a class
 # given a word, in a set of labeled emails
-def n_b_single_word(cl, wd, _set):
+def n_b_single_word(cl, wd, _set, smoothing):
     word = wd.strip().upper()
-    p_ba = word_class_prob(word, cl, _set)
-    p_a = class_prob(cl, _set)
-    p_b = word_prob(word, _set)
+    p_ba = word_class_prob(word, cl, _set, smoothing)
+    p_a = class_prob(cl, _set, smoothing)
+    p_b = word_prob(word, _set, smoothing)
 
-    return p_ba * p_a / p_b
+    try:
+        result = p_ba * p_a / p_b
+    except:
+        print("ERROR: dividing by 0")
+        result =  -1
+    
+
+    return result
 
 
 # Complete Naive Bayes
-def n_b(cl, wd, _set):
+def n_b(cl, wd, _set, smoothing=False):
     
     word_list = list(wd.split())
     word_list_length = len(word_list)
 
     # only one word probability
     if word_list_length == 1:
-        return n_b_single_word(cl, wd, _set)
+        return n_b_single_word(cl, wd, _set, smoothing)
     
     # for multiple words
     # P(A1) * P(B1|A1) * ... * P(Bn|A1) -> top: probability of the class times
@@ -86,11 +112,11 @@ def n_b(cl, wd, _set):
     # -> bottom: probability of a class times the probability off all words given that
     # same class, for all clases
 
-    top = class_prob(cl, _set)
+    top = class_prob(cl, _set, smoothing)
 
     for w in word_list:
         word = w.strip().upper()
-        top *= word_class_prob(word, cl, _set)
+        top *= word_class_prob(word, cl, _set, smoothing)
     
     bottom = top
 
@@ -99,14 +125,19 @@ def n_b(cl, wd, _set):
     if cl == 0:
         other_class = 1
 
-    step = class_prob(other_class, _set)
+    step = class_prob(other_class, _set, smoothing)
 
     for w in word_list:
         word = w.strip().upper()
-        step *= word_class_prob(word, other_class, _set)
+        step *= word_class_prob(word, other_class, _set, smoothing)
     
     bottom += step
 
-    result = top / bottom
+    try:
+        result = top / bottom
+    except:
+        print("ERROR: dividing by 0")
+        result = -1
 
     return result
+
