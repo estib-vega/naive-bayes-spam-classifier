@@ -1,5 +1,5 @@
 from test_mails import prob71 as mails
-from naive_bayes import n_b
+from naive_bayes import n_b, n_b_underflow
 import mail_parser as m_p
 
 if __name__ == "__main__":
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     print("Probability of class 0 given 'free money':", d_prob4)
     print("total:", d_prob3 + d_prob4)
 
-    testing_mail = m_p.extract_free_string_from_mail("./TESTING_RES/TEST_00000.eml")
+    testing_mail = m_p.extract_free_string_from_mail("./TESTING_RES/TRAIN_00100.eml")
 
     print("\nDataset Input:")
     d_prob5 = n_b(1, testing_mail, train_mails_dataset, smoothing=True)
@@ -72,4 +72,32 @@ if __name__ == "__main__":
     print("Probability of class 1 given a test mail:", d_prob5)
     print("Probability of class 0 given a test mail:", d_prob6)
     print("-->Returns error because of underflow...")
+    print("\nImplement log technique")
+    d_prob7 = n_b_underflow(testing_mail, train_mails_dataset)
+    print("Most probable class:", d_prob7)
 
+    # test in the 99 other mails
+    print("\nOther mails:")
+    testing_labels = {}
+    
+    mail_test_labels = open("./SPAMTest.label", errors="ignore")
+
+    for line in mail_test_labels:
+        line_arr = line.split()
+        testing_labels[line_arr[1]] = int(line_arr[0])
+
+    num_of_errors = 0
+
+    for num in range(101, 200):
+        text_num = '%05d' % num
+        test_m = m_p.extract_free_string_from_mail("./TESTING_RES/TRAIN_" + text_num + ".eml")
+        prob = n_b_underflow(test_m, train_mails_dataset)
+        print("Most probable class for TRAIN_" + text_num + ".eml:", prob)
+        if prob == testing_labels["TRAIN_" + text_num + ".eml"]:
+            print("------------> correct")
+        else:
+            print("--> incorrect")
+            num_of_errors += 1
+
+    print("Number of errors:", num_of_errors)
+    print("Precission: %", ((99 - num_of_errors) * 100 / 99))

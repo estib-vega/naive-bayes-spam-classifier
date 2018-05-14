@@ -1,3 +1,5 @@
+from math import log2 as log
+
 # Naive Bayes 
 
 # P(A) -> probability of a class in a set of labeled emails
@@ -96,8 +98,8 @@ def n_b_single_word(cl, wd, _set, smoothing):
 
 
 # Complete Naive Bayes
-def n_b(cl, wd, _set, smoothing=False):
-    
+def n_b(cl, wd, _set, smoothing=False, underflow_redux=False): 
+    # raw text to list of words
     word_list = list(wd.split())
     word_list_length = len(word_list)
 
@@ -141,3 +143,23 @@ def n_b(cl, wd, _set, smoothing=False):
 
     return result
 
+def n_b_underflow(wd, _set):
+
+    word_list = list(wd.split())
+    # return the class with the maximum probability
+    # no need for normalization
+
+    # two probabilities:
+    probabilities = []
+
+    for _class in range(0, 2):
+        step = log(class_prob(_class, _set, True))
+        for w in word_list:
+            word = w.strip().upper()
+            step += log(word_class_prob(word, _class, _set, True))
+        probabilities.append(step)
+
+    if probabilities[0] > probabilities[1]:
+        return 0
+    else:
+        return 1
