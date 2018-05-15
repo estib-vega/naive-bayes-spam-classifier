@@ -87,17 +87,34 @@ if __name__ == "__main__":
         testing_labels[line_arr[1]] = int(line_arr[0])
 
     num_of_errors = 0
+    false_positives = 0
+    false_negatives = 0
+    true_positives = 0
 
-    for num in range(101, 200):
+    for num in range(101, 140): # 200
         text_num = '%05d' % num
         test_m = m_p.extract_free_string_from_mail("./TESTING_RES/TRAIN_" + text_num + ".eml")
         prob = n_b_underflow(test_m, train_mails_dataset)
         print("Most probable class for TRAIN_" + text_num + ".eml:", prob)
         if prob == testing_labels["TRAIN_" + text_num + ".eml"]:
             print("------------> correct")
+            if prob == 1: true_positives += 1
         else:
             print("--> incorrect")
             num_of_errors += 1
+            if prob == 1: false_positives += 1
+            else: false_negatives += 1
 
     print("Number of errors:", num_of_errors)
-    print("Precission: %", ((99 - num_of_errors) * 100 / 99))
+    precission = (true_positives / (true_positives + false_positives))
+    print("Precission:", precission)
+    recall = (true_positives / (true_positives + false_negatives))
+    print("Recall:", recall)
+    print("F1:", (2 * precission * recall / (precission + recall)))
+
+    """
+        Number of errors: 5
+        Precission: 0.8846153846153846
+        Recall: 0.92
+        F1: 0.9019607843137256
+    """
