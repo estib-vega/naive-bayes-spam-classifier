@@ -1,17 +1,17 @@
 from math import log2 as log
 
-# Naive Bayes 
+# Naive Bayes
 
 # P(A) -> probability of a class in a set of labeled emails
 def class_prob(cl, _set, smoothing):
     class_instances = 0
-    
+
     # count how many times the class appears
     # in the set
     for _, c in _set:
         if c == cl:
             class_instances += 1
-    
+
     # number of total instances
     total = len(_set)
 
@@ -29,11 +29,11 @@ def class_prob(cl, _set, smoothing):
 
 # P(B) -> probability of a word in a set of labeled emails
 def word_prob(wd, _set, smoothing):
-    # the probability of a word is the sum of 
+    # the probability of a word is the sum of
     # the probability of a word given a class times the probability of a class
     # for all clases (1, 0)
 
-    # P(B) -> P(B|1) * P(1) + P(B|0) * P(0) 
+    # P(B) -> P(B|1) * P(1) + P(B|0) * P(0)
     p_b = word_class_prob(wd, 1, _set, smoothing) * class_prob(1, _set, smoothing)
     p_b += word_class_prob(wd, 0, _set, smoothing) * class_prob(0, _set, smoothing)
 
@@ -92,13 +92,13 @@ def n_b_single_word(cl, wd, _set, smoothing):
     except:
         print("ERROR: dividing by 0")
         result =  -1
-    
+
 
     return result
 
 
 # Complete Naive Bayes
-def n_b(cl, wd, _set, smoothing=False, underflow_redux=False): 
+def n_b(cl, wd, _set, smoothing=False): 
     # raw text to list of words
     word_list = list(wd.split())
     word_list_length = len(word_list)
@@ -106,7 +106,7 @@ def n_b(cl, wd, _set, smoothing=False, underflow_redux=False):
     # only one word probability
     if word_list_length == 1:
         return n_b_single_word(cl, wd, _set, smoothing)
-    
+
     # for multiple words
     # P(A1) * P(B1|A1) * ... * P(Bn|A1) -> top: probability of the class times
     # the probability of all the words given that same class
@@ -119,7 +119,7 @@ def n_b(cl, wd, _set, smoothing=False, underflow_redux=False):
     for w in word_list:
         word = w.strip().upper()
         top *= word_class_prob(word, cl, _set, smoothing)
-    
+
     bottom = top
 
     # there are only two classes: 1 & 0
@@ -132,7 +132,7 @@ def n_b(cl, wd, _set, smoothing=False, underflow_redux=False):
     for w in word_list:
         word = w.strip().upper()
         step *= word_class_prob(word, other_class, _set, smoothing)
-    
+
     bottom += step
 
     try:
